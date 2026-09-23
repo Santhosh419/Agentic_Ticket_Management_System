@@ -1,0 +1,106 @@
+{
+  "name": "IntelliDesk AI Ticket Classification Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "intellidesk-classify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract ticket title and description from incoming webhook\nconst body = $input.item.json.body || $input.item.json;\nconst title = (body.title || '').toLowerCase();\nconst description = (body.description || '').toLowerCase();\nconst text = `${title} ${description}`;\n\n// 1. Determine Category\nlet categoryCode = 'OTHER';
+if (text.includes('payment') || text.includes('refund') || text.includes('deduct') || text.includes('invoice') || text.includes('charge')) {
+  categoryCode = 'PAYMENT';
+} else if (text.includes('login') || text.includes('password') || text.includes('account') || text.includes('profile')) {
+  categoryCode = 'ACCOUNT';
+} else if (text.includes('bug') || text.includes('error') || text.includes('crash') || text.includes('exception') || text.includes('code')) {
+  categoryCode = 'TECHNICAL';
+} else if (text.includes('security') || text.includes('phishing') || text.includes('hack') || text.includes('suspicious')) {
+  categoryCode = 'SECURITY';
+} else if (text.includes('order') || text.includes('item') || text.includes('purchase')) {
+  categoryCode = 'ORDER';
+} else if (text.includes('delivery') || text.includes('ship') || text.includes('tracking') || text.includes('parcel')) {
+  categoryCode = 'DELIVERY';
+}\n\n// 2. Determine Priority\nlet priority = 'MEDIUM';
+if (text.includes('outage') || text.includes('down') || text.includes('critical') || text.includes('production')) {
+  priority = 'CRITICAL';
+} else if (text.includes('urgent') || text.includes('fail') || text.includes('deducted') || text.includes('cannot access')) {
+  priority = 'HIGH';
+} else if (text.includes('minor') || text.includes('cosmetic') || text.includes('slow')) {
+  priority = 'LOW';
+}\n\n// 3. Determine Sentiment\nlet sentiment = 'NEUTRAL';
+if (text.includes('terrible') || text.includes('angry') || text.includes('failed') || text.includes('deducted') || text.includes('worst')) {
+  sentiment = 'NEGATIVE';
+} else if (text.includes('great') || text.includes('thanks') || text.includes('love')) {
+  sentiment = 'POSITIVE';
+}\n\n// 4. Generate AI Suggested Response Hint\nlet suggestedResponse = 'Investigate ticket details and contact customer.';
+if (categoryCode === 'PAYMENT') {
+  suggestedResponse = 'We apologize for the inconvenience. A refund reconciliation check has been logged. If unverified within 2 hours, funds will be automatically credited.';
+} else if (categoryCode === 'ACCOUNT') {
+  suggestedResponse = 'Verify user email identity and initiate password reset link if requested.';
+} else if (categoryCode === 'TECHNICAL') {
+  suggestedResponse = 'Check application logs around the failure timestamp and request stack trace if needed.';
+}\n\nreturn {\n  json: {\n    categoryCode,\n    priority,\n    sentiment,\n    suggestedResponse\n  }\n};"
+      },
+      "id": "node-ai-agent-2",
+      "name": "AI Agent & Classification Rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "node-respond-3",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        750,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent & Classification Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent & Classification Rules": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

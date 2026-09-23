@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IntelliDesk - Support & Ticket Resolution</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <a href="#" class="brand">
+      <div class="brand-icon">⚡</div>
+      <span>IntelliDesk</span>
+    </a>
+    
+    <div id="nav-user-area" class="nav-user" style="display: none;">
+      <span id="nav-user-role" class="role-badge">Role</span>
+      <span id="nav-user-name" class="user-name">User Name</span>
+      <button id="btn-logout" class="btn btn-secondary btn-sm">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    
+    <!-- -----------------------------------------------------------------------
+         Auth Section (Login / Register)
+         ----------------------------------------------------------------------- -->
+    <div id="section-auth" class="auth-wrapper">
+      <div class="card">
+        <div class="tabs">
+          <button id="tab-login" class="tab-btn active">Sign In</button>
+          <button id="tab-register" class="tab-btn">Register Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="form-login">
+          <h2 class="card-title">Welcome Back</h2>
+          <p class="card-subtitle">Sign in to manage your tickets and support requests</p>
+          
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-input" placeholder="user@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+
+          <!-- Quick Demo Creds Helper -->
+          <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-secondary);">
+            <p><strong>Demo Accounts:</strong></p>
+            <p style="margin-top: 0.2rem;">👤 <strong>Admin/Developer:</strong> <code>admin@intellidesk.local</code> / <code>Admin@12345</code></p>
+          </div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="form-register" style="display: none;">
+          <h2 class="card-title">Create Account</h2>
+          <p class="card-subtitle">Register as a Customer to submit & track support tickets</p>
+          
+          <div class="form-group">
+            <label class="form-label" for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" class="form-input" placeholder="Riya Sharma" required minlength="2">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" class="form-input" placeholder="riya@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password</label>
+            <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required minlength="8">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">Register Account</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- -----------------------------------------------------------------------
+         Client Workspace (CUSTOMER Role)
+         ----------------------------------------------------------------------- -->
+    <div id="section-customer" style="display: none;">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="page-title">Customer Support Portal</h1>
+          <p class="page-subtitle">Submit tickets, track resolution progress, and view SLA status</p>
+        </div>
+        <button id="btn-open-create-modal" class="btn btn-primary">
+          <span>+ Raise New Ticket</span>
+        </button>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">🎫</div>
+          <div>
+            <div id="stat-cust-total" class="stat-value">0</div>
+            <div class="stat-label">Total Tickets</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">⚡</div>
+          <div>
+            <div id="stat-cust-active" class="stat-value">0</div>
+            <div class="stat-label">Active / Open</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">✅</div>
+          <div>
+            <div id="stat-cust-resolved" class="stat-value">0</div>
+            <div class="stat-label">Resolved</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Tickets List -->
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;">My Support Tickets</h2>
+      <div id="cust-tickets-container" class="tickets-grid">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </div>
+
+    <!-- -----------------------------------------------------------------------
+         Developer / Agent Console (AGENT / ADMIN Role)
+         ----------------------------------------------------------------------- -->
+    <div id="section-agent" style="display: none;">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="page-title">Developer & Agent Console</h1>
+          <p class="page-subtitle">Manage workload, handle assigned tickets, and process SLA escalations</p>
+        </div>
+      </div>
+
+      <!-- Agent Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #c084fc;">🛠️</div>
+          <div>
+            <div id="stat-agent-assigned" class="stat-value">0</div>
+            <div class="stat-label">Assigned Workload</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">🚨</div>
+          <div>
+            <div id="stat-agent-escalated" class="stat-value">0</div>
+            <div class="stat-label">SLA Escalations</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Console Tabs -->
+      <div class="tabs">
+        <button id="tab-agent-all" class="tab-btn active">All Raised Tickets</button>
+        <button id="tab-agent-assigned" class="tab-btn">My Assigned Tickets</button>
+        <button id="tab-agent-escalated" class="tab-btn">SLA Escalated Queue</button>
+      </div>
+
+      <div id="agent-tickets-container" class="tickets-grid">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- -------------------------------------------------------------------------
+       Modal: Raise New Ticket (Client)
+       ------------------------------------------------------------------------- -->
+  <div id="modal-create-ticket" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Raise New Support Ticket</h3>
+        <button class="modal-close" data-modal="modal-create-ticket">&times;</button>
+      </div>
+      <form id="form-create-ticket">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="ticket-title">Title / Summary *</label>
+            <input type="text" id="ticket-title" class="form-input" placeholder="e.g. Payment deducted but order failed" required minlength="5" maxlength="150">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ticket-description">Detailed Description *</label>
+            <textarea id="ticket-description" class="form-textarea" rows="4" placeholder="Provide complete details, steps to reproduce, or transaction IDs..." required minlength="15" maxlength="5000"></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="ticket-category">Category (Optional)</label>
+              <select id="ticket-category" class="form-select">
+                <option value="">Auto-Classify (Rule Engine)</option>
+                <option value="1">1 - PAYMENT</option>
+                <option value="2">2 - ACCOUNT</option>
+                <option value="3">3 - TECHNICAL</option>
+                <option value="4">4 - SECURITY</option>
+                <option value="5">5 - ORDER</option>
+                <option value="6">6 - DELIVERY</option>
+                <option value="7">7 - OTHER</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="ticket-priority">Priority (Optional)</label>
+              <select id="ticket-priority" class="form-select">
+                <option value="">Auto-Detect</option>
+                <option value="LOW">LOW (48h SLA)</option>
+                <option value="MEDIUM">MEDIUM (24h SLA)</option>
+                <option value="HIGH">HIGH (8h SLA)</option>
+                <option value="CRITICAL">CRITICAL (2h SLA)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal="modal-create-ticket">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Ticket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- -------------------------------------------------------------------------
+       Modal: Ticket Detail & History View
+       ------------------------------------------------------------------------- -->
+  <div id="modal-ticket-detail" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <span id="detail-ticket-number" class="ticket-number">TKD-2026-000001</span>
+          <h3 id="detail-title" class="modal-title" style="margin-top: 0.25rem;">Ticket Title</h3>
+        </div>
+        <button class="modal-close" data-modal="modal-ticket-detail">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Badges Bar -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
+          <span id="detail-status" class="badge">STATUS</span>
+          <span id="detail-sla" class="badge">SLA</span>
+          <span id="detail-category" class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-primary);">CATEGORY</span>
+          <span id="detail-priority" class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-primary);">PRIORITY</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <p id="detail-description" style="background: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.9rem; color: var(--text-primary); white-space: pre-wrap; border: 1px solid var(--border-color);"></p>
+        </div>
+
+        <!-- Resolution Section (if resolved) -->
+        <div id="detail-resolution-box" class="form-group" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1rem; border-radius: var(--radius-md);">
+          <label class="form-label" style="color: #34d399;">Resolution Note</label>
+          <p id="detail-resolution-text" style="font-size: 0.9rem; color: var(--text-primary);"></p>
+        </div>
+
+        <!-- Developer Hint (Agent only) -->
+        <div id="detail-hint-box" class="form-group" style="display: none; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 1rem; border-radius: var(--radius-md);">
+          <label class="form-label" style="color: #a5b4fc;">AI Classification Hint</label>
+          <p id="detail-hint-text" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
+        </div>
+
+        <!-- Timeline Section -->
+        <div style="margin-top: 1.5rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-secondary);">Audit Trail History</h4>
+          <div id="detail-history-timeline" class="timeline">
+            <!-- Timeline items rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" id="detail-actions">
+        <!-- Dynamic Action Buttons (Close, Reopen, Change Status) -->
+      </div>
+    </div>
+  </div>
+
+  <!-- -------------------------------------------------------------------------
+       Modal: Developer Status Transition / Handle Ticket
+       ------------------------------------------------------------------------- -->
+  <div id="modal-status-transition" class="modal-backdrop">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Update Ticket Status</h3>
+        <button class="modal-close" data-modal="modal-status-transition">&times;</button>
+      </div>
+      <form id="form-status-transition">
+        <div class="modal-body">
+          <input type="hidden" id="trans-ticket-id">
+          
+          <div class="form-group">
+            <label class="form-label" for="trans-target-status">Target Status *</label>
+            <select id="trans-target-status" class="form-select" required>
+              <option value="IN_PROGRESS">IN_PROGRESS (Start Working)</option>
+              <option value="WAITING_FOR_CUSTOMER">WAITING_FOR_CUSTOMER (Need Customer Input)</option>
+              <option value="RESOLVED">RESOLVED (Fix Completed)</option>
+            </select>
+          </div>
+
+          <div id="group-resolution" class="form-group" style="display: none;">
+            <label class="form-label" for="trans-resolution">Resolution Note (Required when Resolving) *</label>
+            <textarea id="trans-resolution" class="form-textarea" rows="3" placeholder="Describe the fix or step taken to resolve the issue..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="trans-reason">Reason / Internal Note (Optional)</label>
+            <input type="text" id="trans-reason" class="form-input" placeholder="e.g. Verified fix on production database">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal="modal-status-transition">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Status</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
