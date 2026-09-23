@@ -54,17 +54,20 @@ public class TicketController {
     private final TicketWorkflowService workflowService;
     private final TicketAuditService auditService;
     private final AssignmentService assignmentService;
+    private final com.intellidesk.agent.resolution.AgentResolutionService agentResolutionService;
     private final TicketMapper mapper;
 
     public TicketController(TicketService ticketService,
                             TicketWorkflowService workflowService,
                             TicketAuditService auditService,
                             AssignmentService assignmentService,
+                            com.intellidesk.agent.resolution.AgentResolutionService agentResolutionService,
                             TicketMapper mapper) {
         this.ticketService = ticketService;
         this.workflowService = workflowService;
         this.auditService = auditService;
         this.assignmentService = assignmentService;
+        this.agentResolutionService = agentResolutionService;
         this.mapper = mapper;
     }
 
@@ -191,5 +194,20 @@ public class TicketController {
             @AuthenticationPrincipal IntelliDeskUserDetails principal) {
         Ticket assigned = assignmentService.assign(id, principal.getUser());
         return mapper.toResponse(assigned);
+    }
+
+    @Operation(summary = "Run specialized domain AI Resolution Agent to auto-resolve ticket")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Auto-resolved by AI agent"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Ticket not found")
+    })
+    @PostMapping("/{id}/auto-resolve")
+    @PreAuthorize("hasAnyRole('CUSTOMER','AGENT','ADMIN')")
+    public TicketResponse autoResolve(
+            @PathVariable Long id,
+            @AuthenticationPrincipal IntelliDeskUserDetails principal) {
+        Ticket resolved = agentResolutionService.autoResolveTicket(id, principal.getUser());
+        return mapper.toResponse(resolved, principal.getUser().getRole() != com.intellidesk.user.domain.Role.CUSTOMER);
     }
 }

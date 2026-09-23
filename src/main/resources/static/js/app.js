@@ -542,6 +542,12 @@
       }
     } else {
       // Developer / Agent / Admin actions
+      if (['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'ESCALATED'].includes(ticket.status)) {
+        buttons += `
+          <button class="btn btn-success" onclick="window.runAiResolutionAgent(${ticket.id})">🤖 Run AI Resolution Agent</button>
+        `;
+      }
+
       if (state.user.role === 'ADMIN' && ticket.status === 'OPEN') {
         buttons += `
           <button class="btn btn-primary" onclick="window.assignTicketToBestAgent(${ticket.id})">⚡ Auto-Assign to Best Agent</button>
@@ -557,6 +563,22 @@
 
     DOM.detailActions.innerHTML = buttons;
   }
+
+  // --- Specialized AI Resolution Agent Action ---
+  window.runAiResolutionAgent = async function(id) {
+    try {
+      const ticket = await apiCall(`/api/tickets/${id}/auto-resolve`, 'POST');
+      closeModal(DOM.modalTicketDetail);
+      showToast(`Ticket ${ticket.ticketNumber} auto-resolved by ${ticket.category.name} AI Agent!`, 'success');
+      if (state.user.role === 'CUSTOMER') {
+        loadCustomerDashboard();
+      } else {
+        loadAgentDashboard();
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
 
   // --- Auto Assign Action ---
   window.assignTicketToBestAgent = async function(id) {
