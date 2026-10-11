@@ -37,10 +37,11 @@ com.intellidesk
 ├── user          # users, roles, (Phase 2: auth)
 ├── ticket        # tickets, comments, history, workflow
 ├── category      # support categories
-├── agent         # agent skills
+├── agent         # agent skills and automated domain resolvers
 ├── sla           # SLA policies (Phase 6: scheduler)
 ├── dashboard     # (Phase 8) statistics
-└── ai            # (Phase 7) classification abstraction
+├── ecommerce     # catalog, customer orders, order items, real remediation actions
+└── ai            # dual-mode AI/ML resolution agent & tool-calling engine
 ```
 
 ## Quick start
@@ -90,6 +91,12 @@ export INTELLIDESK_DB_PASSWORD=intellidesk
 | POST | `/api/tickets/{id}/status` | role rules per edge (see workflow) | Controlled transition `{target, reason?, resolution?}` |
 | GET | `/api/tickets/{id}/history` | owner / assigned agent / ADMIN | Append-only audit trail (newest last) |
 | POST | `/api/tickets/{id}/assign` | ADMIN | Manual assignment (only from OPEN) |
+| POST | `/api/tickets/{id}/auto-resolve` | owner / assigned agent / ADMIN | Run AI Resolution Agent with order remediation |
+| GET | `/api/ecommerce/products` | public / authenticated | Active product catalog |
+| GET | `/api/ecommerce/orders/my` | CUSTOMER | Customer's own order history |
+| GET | `/api/ecommerce/orders` | AGENT / ADMIN | All customer orders |
+| GET | `/api/ecommerce/orders/{id}` | owner / AGENT / ADMIN | Order details with items, carrier tracking & totals |
+| GET | `/api/ecommerce/orders/by-number/{orderNumber}` | owner / AGENT / ADMIN | Lookup order by human order number (ORD-YYYY-XXXX) |
 | GET | `/api/admin/agents` | ADMIN | Agent workloads (active ticket counts + skills) |
 | POST | `/api/admin/agents/{agentId}/skills` | ADMIN | Upsert skill `{categoryId, proficiencyLevel 1..5}` |
 | GET | `/api/admin/agents/{agentId}/skills` | ADMIN | Skills of one agent |
@@ -347,6 +354,72 @@ guard — a ticket can never collect two escalation rows per breach.
 | `intellidesk.sla.scan-interval-ms` | 60000 | monitor period |
 | `intellidesk.sla.at-risk-minutes` | 60 | AT_RISK window |
 | `intellidesk.workflow.reopen-window-days` | 7 | how long a CLOSED ticket may be reopened |
+| `intellidesk.ai.llm.enabled` | `false` | Enable external LLM (Gemini/OpenAI); when `false`, offline heuristic ML engine runs |
+| `intellidesk.ai.llm.provider` | `gemini` | LLM provider: `gemini` or `openai` |
+| `intellidesk.ai.llm.api-key` | *(empty)* | API key for Gemini or OpenAI (configured via env var `INTELLIDESK_LLM_API_KEY`) |
+| `intellidesk.ai.llm.model` | `gemini-1.5-flash` | Model identifier |
+| `intellidesk.ai.llm.auto-resolve-on-create` | `true` | Automatically run resolution agent on ticket creation for eligible issues |
+| `intellidesk.ai.llm.confidence-threshold` | `0.75` | Minimum confidence required to auto-resolve |
+
+## E-Commerce Integration & AI Resolution Agent
+
+IntelliDesk integrates directly with an embedded E-Commerce domain (`Product`, `Order`, `OrderItem`), allowing support tickets to link directly to customer orders and execute automated remedial actions.
+
+### 1. E-Commerce Domain Model
+- **Entities**:
+  - `Product`: catalog items with SKU, name, price, stock, active status.
+  - `Order`: human-readable `orderNumber` (`ORD-YYYY-XXXX`), customer relationship, `OrderStatus` (`PENDING`, `CONFIRMED`, `SHIPPED`, `DELIVERED`, `CANCELLED`, `REFUNDED`), `PaymentStatus` (`PENDING`, `PAID`, `FAILED`, `REFUNDED`), subtotal/shipping/tax/total amounts, and carrier tracking info (`trackingNumber`, `carrierName`, `estimatedDelivery`).
+  - `OrderItem`: purchased products, quantity, unit price, total price.
+- **Ticket Linkage**:
+  - Tickets accept an optional `orderId` on creation (`POST /api/tickets`), or automatically link to an order by parsing order numbers (e.g., `ORD-2026-1001`) from the ticket title or description.
+  - Ticket responses include an embedded `OrderSummary` DTO containing the order number, total amount, status, payment status, and tracking carrier.
+
+### 2. Dual-Mode AI Agent Architecture
+Remediation is handled by a specialized domain AI agent with tool-calling capabilities (`AiResolutionAgentService` & `AiToolRegistry`):
+
+```
+Customer Ticket (e.g., "Payment deducted but order failed ORD-2026-1002")
+                       │
+                       ▼
+       ┌───────────────────────────────┐
+       │   AiResolutionAgentService    │
+       └───────────────┬───────────────┘
+                       │
+        ┌──────────────┴──────────────┐
+        ▼                             ▼
+  [LLM Enabled]                 [Offline / Default]
+  Google Gemini / OpenAI        Deterministic Heuristic ML Engine
+  Function Calling Protocol     Intent classifier + Entity extractor
+        │                             │
+        └──────────────┬──────────────┘
+                       │
+                       ▼
+         ┌───────────────────────────┐
+         │      AiToolRegistry       │
+         │ - lookup_order            │
+         │ - process_refund          │
+         │ - cancel_order            │
+         │ - sync_tracking           │
+         │ - issue_store_credit      │
+         └─────────────┬─────────────┘
+                       │ Real DB & State Machine Mutation
+                       ▼
+         Order status updated (REFUNDED / CANCELLED)
+         Ticket resolved with remediation audit note
+```
+
+- **Offline Heuristic ML Engine (Default)**: Runs 100% locally with zero external API key requirements and sub-millisecond execution. Classifies customer intent (Refund, Cancellation, Carrier Tracking, Voucher Credit), inspects order state invariants, executes domain tools, and outputs an explanation.
+- **External LLM Provider (Gemini / OpenAI)**: Enabled via `intellidesk.ai.llm.enabled=true`. Sends tool definitions and the ticket prompt to the LLM endpoint; executes the chosen tool calls locally, and returns the LLM's natural language resolution summary.
+- **Guardrails**:
+  - Invariant checks: Cannot cancel orders that are already `SHIPPED` or `DELIVERED` (instructs customer on return flow).
+  - Cannot refund orders that are already `REFUNDED`.
+  - Auto-resolutions are recorded with full audit trails in `ticket_history`.
+
+### 3. Copilot Console in Web UI
+The modern Web UI (`index.html`) includes:
+- **Order Selection Dropdown**: Customers can select their recent orders when creating a ticket.
+- **E-Commerce Order Drawer**: Detail view shows linked order details (status, payment status, tracking number, items, and total amount).
+- **Run AI Resolution Copilot**: An interactive button allowing support agents or admins to trigger autonomous resolution on-demand with live visual console output.
 
 ## License
 

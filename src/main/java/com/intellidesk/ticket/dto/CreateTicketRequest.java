@@ -28,5 +28,11 @@ public record CreateTicketRequest(
         @Positive(message = "CategoryId must be a positive number")
         Long categoryId,
 
-        TicketPriority priority
-) {}
+        TicketPriority priority,
+
+        Long orderId
+) {
+    public CreateTicketRequest(String title, String description, Long categoryId, TicketPriority priority) {
+        this(title, description, categoryId, priority, null);
+    }
+}

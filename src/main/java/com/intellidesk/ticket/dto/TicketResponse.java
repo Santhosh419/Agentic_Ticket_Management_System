@@ -38,12 +38,41 @@ public record TicketResponse(
         Instant closedAt,
         Instant escalatedAt,
         Sentiment sentiment,
-        String suggestedResponse
+        String suggestedResponse,
+        OrderSummary order
 ) {
+
+    public TicketResponse(
+            Long id,
+            String ticketNumber,
+            String title,
+            String description,
+            TicketStatus status,
+            TicketPriority priority,
+            CategorySummary category,
+            UserSummary customer,
+            UserSummary assignedAgent,
+            String resolution,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant slaDeadlineAt,
+            SlaSummary sla,
+            Instant resolvedAt,
+            Instant closedAt,
+            Instant escalatedAt,
+            Sentiment sentiment,
+            String suggestedResponse
+    ) {
+        this(id, ticketNumber, title, description, status, priority, category, customer,
+             assignedAgent, resolution, createdAt, updatedAt, slaDeadlineAt, sla,
+             resolvedAt, closedAt, escalatedAt, sentiment, suggestedResponse, null);
+    }
 
     public record CategorySummary(Long id, String code, String name) {}
 
     public record UserSummary(Long id, String fullName) {}
+
+    public record OrderSummary(Long id, String orderNumber, String status, String paymentStatus, Double totalAmount, String trackingNumber) {}
 
     /** Live SLA health, computed at read time (see SlaService). */
     public record SlaSummary(SlaStatus status, long minutesToDeadline) {}

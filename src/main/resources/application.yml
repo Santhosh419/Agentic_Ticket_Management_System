@@ -1,4 +1,6 @@
 spring:
+  main:
+    banner-mode: off
   application:
     name: IntelliDesk
 
@@ -44,6 +46,14 @@ intellidesk:
     n8n:
       webhook-url: ${INTELLIDESK_CLASSIFICATION_N8N_WEBHOOK_URL:http://localhost:5678/webhook/intellidesk-classify}
       timeout-ms: ${INTELLIDESK_CLASSIFICATION_N8N_TIMEOUT_MS:5000}
+  ai:
+    llm:
+      enabled: ${INTELLIDESK_AI_LLM_ENABLED:false}
+      provider: ${INTELLIDESK_AI_LLM_PROVIDER:openai-compatible}
+      api-key: ${INTELLIDESK_AI_API_KEY:}
+      model: ${INTELLIDESK_AI_MODEL:gpt-4o-mini}
+      endpoint-url: ${INTELLIDESK_AI_ENDPOINT_URL:https://api.openai.com/v1}
+      timeout-ms: ${INTELLIDESK_AI_TIMEOUT_MS:8000}
   security:
     jwt:
       # REQUIRED in real deployments: export INTELLIDESK_JWT_SECRET (>= 32 chars).

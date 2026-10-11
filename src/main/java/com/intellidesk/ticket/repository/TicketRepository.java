@@ -21,23 +21,23 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
      * Detail fetch joins every association used by TicketResponse in one query,
      * preventing lazy-loading N+1 problems when building the DTO.
      */
-    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category", "slaPolicy"})
+    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category", "slaPolicy", "order"})
     Optional<Ticket> findWithDetailsById(Long id);
 
     /** Customer's own tickets (access rule enforced by the service). */
-    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category"})
+    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category", "order"})
     Page<Ticket> findByReporterId(Long reporterId, Pageable pageable);
 
     /** Agent's assigned tickets. */
-    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category"})
+    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category", "order"})
     Page<Ticket> findByAssignedAgentId(Long agentId, Pageable pageable);
 
     /** Admin: every ticket, newest first. */
-    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category"})
+    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category", "order"})
     Page<Ticket> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     /** Admin: filtered by status. */
-    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category"})
+    @EntityGraph(attributePaths = {"reporter", "assignedAgent", "category", "order"})
     Page<Ticket> findByStatus(TicketStatus status, Pageable pageable);
 
     /** SLA monitor: breached work items, idempotent batch scan (paged). */

@@ -3,6 +3,7 @@ package com.intellidesk.ticket.entity;
 import com.intellidesk.category.entity.Category;
 import com.intellidesk.classification.domain.Sentiment;
 import com.intellidesk.common.domain.BaseEntity;
+import com.intellidesk.ecommerce.entity.Order;
 import com.intellidesk.sla.entity.SlaPolicy;
 import com.intellidesk.ticket.domain.TicketPriority;
 import com.intellidesk.ticket.domain.TicketStatus;
@@ -47,7 +48,8 @@ import java.time.Instant;
                 @Index(name = "idx_tickets_status", columnList = "status"),
                 @Index(name = "idx_tickets_priority", columnList = "priority"),
                 @Index(name = "idx_tickets_category", columnList = "category_id"),
-                @Index(name = "idx_tickets_sla_deadline", columnList = "sla_deadline_at")
+                @Index(name = "idx_tickets_sla_deadline", columnList = "sla_deadline_at"),
+                @Index(name = "idx_tickets_order", columnList = "order_id")
         }
 )
 public class Ticket extends BaseEntity {
@@ -88,6 +90,11 @@ public class Ticket extends BaseEntity {
     @JoinColumn(name = "sla_policy_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_tickets_sla_policy"))
     private SlaPolicy slaPolicy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id",
+                foreignKey = @ForeignKey(name = "fk_tickets_order"))
+    private Order order;
 
     @Column(name = "sla_deadline_at", nullable = false)
     private Instant slaDeadlineAt;
@@ -272,6 +279,14 @@ public class Ticket extends BaseEntity {
 
     public void setClosedAt(Instant closedAt) {
         this.closedAt = closedAt;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 
     public long getVersion() {
