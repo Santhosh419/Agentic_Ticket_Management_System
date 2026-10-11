@@ -61,6 +61,8 @@ public class TicketService {
     private final AssignmentProperties assignmentProperties;
     private final TicketAuditService auditService;
     private final TicketClassificationService classificationService;
+    private final com.intellidesk.ecommerce.repository.OrderRepository orderRepository;
+    private final com.intellidesk.ai.agent.AiResolutionAgentService aiResolutionAgentService;
 
     public TicketService(TicketRepository ticketRepository,
                          CategoryRepository categoryRepository,
@@ -71,6 +73,25 @@ public class TicketService {
                          AssignmentProperties assignmentProperties,
                          TicketAuditService auditService,
                          TicketClassificationService classificationService) {
+        this(ticketRepository, categoryRepository, slaPolicyRepository, numberGenerator,
+             mapper, assignmentService, assignmentProperties, auditService,
+             classificationService, null, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public TicketService(TicketRepository ticketRepository,
+                         CategoryRepository categoryRepository,
+                         SlaPolicyRepository slaPolicyRepository,
+                         TicketNumberGenerator numberGenerator,
+                         TicketMapper mapper,
+                         AssignmentService assignmentService,
+                         AssignmentProperties assignmentProperties,
+                         TicketAuditService auditService,
+                         TicketClassificationService classificationService,
+                         @org.springframework.beans.factory.annotation.Autowired(required = false)
+                         com.intellidesk.ecommerce.repository.OrderRepository orderRepository,
+                         @org.springframework.beans.factory.annotation.Autowired(required = false)
+                         com.intellidesk.ai.agent.AiResolutionAgentService aiResolutionAgentService) {
         this.ticketRepository = ticketRepository;
         this.categoryRepository = categoryRepository;
         this.slaPolicyRepository = slaPolicyRepository;
@@ -80,6 +101,8 @@ public class TicketService {
         this.assignmentProperties = assignmentProperties;
         this.auditService = auditService;
         this.classificationService = classificationService;
+        this.orderRepository = orderRepository;
+        this.aiResolutionAgentService = aiResolutionAgentService;
     }
 
     // ---- commands ----------------------------------------------------------
@@ -115,6 +138,14 @@ public class TicketService {
         ticket.setSentiment(classification.sentiment());
         ticket.setSuggestedResponse(classification.suggestedResponse());
 
+        if (orderRepository != null) {
+            com.intellidesk.ecommerce.entity.Order linkedOrder =
+                    resolveOrder(request.orderId(), request.title(), request.description(), reporter);
+            if (linkedOrder != null) {
+                ticket.setOrder(linkedOrder);
+            }
+        }
+
         Ticket saved = ticketRepository.saveAndFlush(ticket); // INSERT, id assigned
         saved.setTicketNumber(numberGenerator.format(saved.getId(), saved.getCreatedAt()));
         ticketRepository.saveAndFlush(saved);                 // UPDATE with final number
@@ -122,14 +153,29 @@ public class TicketService {
         // the audit trail starts at creation: null -> OPEN
         auditService.record(saved, null, TicketStatus.OPEN, reporter, "Ticket created");
 
-        if (classification.autoResolve() && classification.suggestedResponse() != null && !classification.suggestedResponse().isBlank()) {
-            TicketStatus oldStatus = saved.getStatus();
-            saved.setResolvedAt(Instant.now());
-            saved.setResolution(classification.suggestedResponse().trim());
-            saved.changeStatus(TicketStatus.RESOLVED);
-            saved = ticketRepository.saveAndFlush(saved);
-            auditService.record(saved, oldStatus, TicketStatus.RESOLVED, null, "Auto-resolved by AI Support Agent");
-            log.info("Ticket {} auto-resolved autonomously by AI agent", saved.getTicketNumber());
+        if (classification.autoResolve()) {
+            if (aiResolutionAgentService != null) {
+                com.intellidesk.ai.agent.AiResolutionAgentService.AiResolutionOutcome outcome =
+                        aiResolutionAgentService.resolveTicket(saved);
+                TicketStatus oldStatus = saved.getStatus();
+                saved.setResolvedAt(Instant.now());
+                saved.setResolution(outcome.resolutionNote());
+                saved.changeStatus(TicketStatus.RESOLVED);
+                saved = ticketRepository.saveAndFlush(saved);
+                String auditReason = outcome.actionsTaken().isEmpty()
+                        ? "Auto-resolved by " + outcome.agentName()
+                        : "Auto-resolved by " + outcome.agentName() + ": " + String.join(", ", outcome.actionsTaken());
+                auditService.record(saved, oldStatus, TicketStatus.RESOLVED, null, auditReason);
+                log.info("Ticket {} auto-resolved autonomously by AI agent with tools", saved.getTicketNumber());
+            } else if (classification.suggestedResponse() != null && !classification.suggestedResponse().isBlank()) {
+                TicketStatus oldStatus = saved.getStatus();
+                saved.setResolvedAt(Instant.now());
+                saved.setResolution(classification.suggestedResponse().trim());
+                saved.changeStatus(TicketStatus.RESOLVED);
+                saved = ticketRepository.saveAndFlush(saved);
+                auditService.record(saved, oldStatus, TicketStatus.RESOLVED, null, "Auto-resolved by AI Support Agent");
+                log.info("Ticket {} auto-resolved autonomously by AI agent", saved.getTicketNumber());
+            }
         } else if (assignmentProperties.autoAssignOnCreate()) {
             // same transaction: assign best-scoring agent right away (system actor)
             saved = assignmentService.assign(saved.getId(), null);
@@ -307,5 +353,26 @@ public class TicketService {
                 Math.max(pageable.getPageNumber(), 0),
                 Math.min(pageable.getPageSize(), MAX_PAGE_SIZE),
                 pageable.getSort());
+    }
+
+    private com.intellidesk.ecommerce.entity.Order resolveOrder(Long orderId, String title, String description, User reporter) {
+        if (orderRepository == null) {
+            return null;
+        }
+        if (orderId != null) {
+            return orderRepository.findWithDetailsById(orderId)
+                    .filter(o -> reporter.getRole() == Role.ADMIN || o.getCustomer().getId().equals(reporter.getId()))
+                    .orElse(null);
+        }
+        String text = ((title == null ? "" : title) + " " + (description == null ? "" : description));
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(
+                "\\b(ORD-\\d{4}-\\d{3,6}|ORD-\\d+|#ORD-\\d+)\\b", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(text);
+        if (matcher.find()) {
+            String orderNum = matcher.group(1).replace("#", "").toUpperCase();
+            return orderRepository.findWithDetailsByOrderNumber(orderNum)
+                    .filter(o -> reporter.getRole() == Role.ADMIN || o.getCustomer().getId().equals(reporter.getId()))
+                    .orElse(null);
+        }
+        return null;
     }
 }

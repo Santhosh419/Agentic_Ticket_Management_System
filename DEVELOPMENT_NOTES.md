@@ -357,3 +357,29 @@ And `JwtService` logged "HS256" regardless of key size while jjwt picks the
 SHA variant from the key - the log now states the key bits instead of an
 algorithm it does not control. Debugging starts from the logs; logs must not
 lie.
+
+---
+
+## Phase 6 (E-Commerce Integration & Autonomous AI Issue Resolution Agent)
+
+### 34. Dual-mode AI Resolution: Live LLM + Zero-Setup Heuristic Tool Engine
+
+Requirements collision: real external LLM reasoning requires network access and
+an API key, but tests and local developer environments must work completely offline
+with 0 API key friction.
+Fix: built a dual-mode engine in `AiResolutionAgentService`. When `INTELLIDESK_AI_API_KEY`
+is configured and enabled, it connects to Gemini or OpenAI-compatible endpoints with
+tool/function calling; when offline or without keys, it seamlessly uses the embedded
+deterministic heuristic engine that invokes the exact same domain tools (`process_refund`,
+`cancel_order`, `sync_tracking`, `issue_store_credit`).
+Lesson: never make an external AI service a single point of failure in a core business flow.
+
+### 35. State machine safety on automated order cancellation and refund
+
+An automated agent must never cancel an order that is already in-flight or delivered,
+which would cause double-loss (goods kept + money refunded).
+Fix: `EcommerceService.cancelOrder` enforces domain edge rules: orders in `SHIPPED`
+or `DELIVERED` status reject cancellation with an explanatory message, while `PENDING`
+or `CONFIRMED` orders safely transition to `CANCELLED`, restock inventory, and refund payments.
+Lesson: guard automated agents with domain invariants at the service layer, not just in prompts.
+

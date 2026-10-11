@@ -64,7 +64,15 @@ public class TicketMapper {
                 ticket.getClosedAt(),
                 ticket.getEscalatedAt(),
                 ticket.getSentiment(),
-                includeAgentHints ? ticket.getSuggestedResponse() : null
+                includeAgentHints ? ticket.getSuggestedResponse() : null,
+                ticket.getOrder() == null ? null : new TicketResponse.OrderSummary(
+                        ticket.getOrder().getId(),
+                        ticket.getOrder().getOrderNumber(),
+                        ticket.getOrder().getStatus().name(),
+                        ticket.getOrder().getPaymentStatus().name(),
+                        ticket.getOrder().getTotalAmount(),
+                        ticket.getOrder().getTrackingNumber()
+                )
         );
     }
 }

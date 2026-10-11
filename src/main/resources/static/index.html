@@ -13,10 +13,25 @@
 
   <!-- Navigation Bar -->
   <header class="navbar">
-    <a href="#" class="brand">
-      <div class="brand-icon">⚡</div>
-      <span>IntelliDesk</span>
-    </a>
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+      <a href="#" class="brand">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <span>IntelliDesk</span>
+      </a>
+      
+      <div id="nav-views" style="display: none; align-items: center; gap: 0.5rem;">
+        <button id="nav-btn-tickets" class="tab-btn active" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+          <span>Support Desk</span>
+        </button>
+        <button id="nav-btn-ecommerce" class="tab-btn" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
+          <span>E-Commerce Store</span>
+        </button>
+      </div>
+    </div>
     
     <div id="nav-user-area" class="nav-user" style="display: none;">
       <span id="nav-user-role" class="role-badge">Role</span>
@@ -58,7 +73,7 @@
           <!-- Quick Demo Creds Helper -->
           <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-secondary);">
             <p><strong>Demo Accounts:</strong></p>
-            <p style="margin-top: 0.2rem;">👤 <strong>Admin/Developer:</strong> <code>admin@intellidesk.local</code> / <code>Admin@12345</code></p>
+            <p style="margin-top: 0.2rem;"><strong>Admin/Developer:</strong> <code>admin@intellidesk.local</code> / <code>Admin@12345</code></p>
           </div>
         </form>
 
@@ -104,21 +119,27 @@
       <!-- Stats Bar -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">🎫</div>
+          <div class="stat-icon" style="background: #eff6ff; color: #2563eb; border-color: #dbeafe;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+          </div>
           <div>
             <div id="stat-cust-total" class="stat-value">0</div>
             <div class="stat-label">Total Tickets</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">⚡</div>
+          <div class="stat-icon" style="background: #fffbeb; color: #d97706; border-color: #fde68a;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
           <div>
             <div id="stat-cust-active" class="stat-value">0</div>
             <div class="stat-label">Active / Open</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">✅</div>
+          <div class="stat-icon" style="background: #f0fdf4; color: #16a34a; border-color: #bbf7d0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
           <div>
             <div id="stat-cust-resolved" class="stat-value">0</div>
             <div class="stat-label">Resolved</div>
@@ -127,7 +148,7 @@
       </div>
 
       <!-- Customer Tickets List -->
-      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;">My Support Tickets</h2>
+      <h2 style="font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem;">My Support Tickets</h2>
       <div id="cust-tickets-container" class="tickets-grid">
         <!-- Rendered dynamically via JavaScript -->
       </div>
@@ -147,14 +168,18 @@
       <!-- Agent Stats -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #c084fc;">🛠️</div>
+          <div class="stat-icon" style="background: #faf5ff; color: #7e22ce; border-color: #e9d5ff;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
           <div>
             <div id="stat-agent-assigned" class="stat-value">0</div>
             <div class="stat-label">Assigned Workload</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">🚨</div>
+          <div class="stat-icon" style="background: #fef2f2; color: #dc2626; border-color: #fecaca;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
           <div>
             <div id="stat-agent-escalated" class="stat-value">0</div>
             <div class="stat-label">SLA Escalations</div>
@@ -171,6 +196,44 @@
 
       <div id="agent-tickets-container" class="tickets-grid">
         <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </div>
+
+    <!-- -----------------------------------------------------------------------
+         E-Commerce Storefront & Customer Orders View
+         ----------------------------------------------------------------------- -->
+    <div id="section-ecommerce" style="display: none;">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="page-title">E-Commerce Store & Orders</h1>
+          <p class="page-subtitle">Browse products, inspect order statuses, track carrier packages, and test AI remediation</p>
+        </div>
+      </div>
+
+      <!-- E-Commerce Subtabs -->
+      <div class="tabs">
+        <button id="tab-ecom-orders" class="tab-btn active">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span>Orders & Carrier Tracking</span>
+        </button>
+        <button id="tab-ecom-products" class="tab-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><circle cx="7" cy="7" r=".5" fill="currentColor"/></svg>
+          <span>Products Catalog</span>
+        </button>
+      </div>
+
+      <!-- Orders View -->
+      <div id="ecom-orders-view">
+        <div id="ecom-orders-container" class="tickets-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Products View -->
+      <div id="ecom-products-view" style="display: none;">
+        <div id="ecom-products-container" class="tickets-grid">
+          <!-- Dynamically populated -->
+        </div>
       </div>
     </div>
 
@@ -195,6 +258,13 @@
           <div class="form-group">
             <label class="form-label" for="ticket-description">Detailed Description *</label>
             <textarea id="ticket-description" class="form-textarea" rows="4" placeholder="Provide complete details, steps to reproduce, or transaction IDs..." required minlength="15" maxlength="5000"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ticket-order">Related E-Commerce Order (Optional)</label>
+            <select id="ticket-order" class="form-select">
+              <option value="">None / Not Order Related</option>
+            </select>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -251,24 +321,36 @@
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
           <span id="detail-status" class="badge">STATUS</span>
           <span id="detail-sla" class="badge">SLA</span>
-          <span id="detail-category" class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-primary);">CATEGORY</span>
-          <span id="detail-priority" class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-primary);">PRIORITY</span>
+          <span id="detail-category" class="badge badge-subtle">CATEGORY</span>
+          <span id="detail-priority" class="badge badge-subtle">PRIORITY</span>
+        </div>
+
+        <!-- Linked Order Section -->
+        <div id="detail-order-box" class="form-group" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; padding: 1rem; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <span style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #1d4ed8; font-size: 0.825rem; letter-spacing: 0.02em;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+              LINKED E-COMMERCE ORDER
+            </span>
+            <span id="detail-order-number" class="badge badge-order-tag">ORD-2026-1001</span>
+          </div>
+          <div id="detail-order-content" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;"></div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Description</label>
-          <p id="detail-description" style="background: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.9rem; color: var(--text-primary); white-space: pre-wrap; border: 1px solid var(--border-color);"></p>
+          <p id="detail-description" style="background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-primary); white-space: pre-wrap; border: 1px solid var(--border-color); line-height: 1.5;"></p>
         </div>
 
         <!-- Resolution Section (if resolved) -->
-        <div id="detail-resolution-box" class="form-group" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1rem; border-radius: var(--radius-md);">
-          <label class="form-label" style="color: #34d399;">Resolution Note</label>
-          <p id="detail-resolution-text" style="font-size: 0.9rem; color: var(--text-primary);"></p>
+        <div id="detail-resolution-box" class="form-group" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1rem; border-radius: var(--radius-sm);">
+          <label class="form-label" style="color: #15803d; font-weight: 700;">Resolution Note</label>
+          <p id="detail-resolution-text" style="font-size: 0.875rem; color: var(--text-primary);"></p>
         </div>
 
         <!-- Developer Hint (Agent only) -->
-        <div id="detail-hint-box" class="form-group" style="display: none; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 1rem; border-radius: var(--radius-md);">
-          <label class="form-label" style="color: #a5b4fc;">AI Classification Hint</label>
+        <div id="detail-hint-box" class="form-group" style="display: none; background: #faf5ff; border: 1px solid #e9d5ff; padding: 1rem; border-radius: var(--radius-sm);">
+          <label class="form-label" style="color: #7e22ce; font-weight: 700;">AI Classification & Hint</label>
           <p id="detail-hint-text" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
         </div>
 

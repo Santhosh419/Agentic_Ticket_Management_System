@@ -24,13 +24,24 @@ public class AgentResolutionService {
     private final TicketRepository ticketRepository;
     private final TicketWorkflowService workflowService;
     private final List<TicketResolver> resolvers;
+    private final com.intellidesk.ai.agent.AiResolutionAgentService aiResolutionAgentService;
 
     public AgentResolutionService(TicketRepository ticketRepository,
                                   TicketWorkflowService workflowService,
                                   List<TicketResolver> resolvers) {
+        this(ticketRepository, workflowService, resolvers, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public AgentResolutionService(TicketRepository ticketRepository,
+                                  TicketWorkflowService workflowService,
+                                  List<TicketResolver> resolvers,
+                                  @org.springframework.beans.factory.annotation.Autowired(required = false)
+                                  com.intellidesk.ai.agent.AiResolutionAgentService aiResolutionAgentService) {
         this.ticketRepository = ticketRepository;
         this.workflowService = workflowService;
         this.resolvers = resolvers;
+        this.aiResolutionAgentService = aiResolutionAgentService;
     }
 
     @Transactional
@@ -48,7 +59,14 @@ public class AgentResolutionService {
         log.info("Dispatching ticket {} (category={}) to specialized agent {}",
                 ticket.getTicketNumber(), categoryCode, resolver.getClass().getSimpleName());
 
-        AgentResolutionResult result = resolver.resolve(ticket);
+        AgentResolutionResult result;
+        if (aiResolutionAgentService != null) {
+            com.intellidesk.ai.agent.AiResolutionAgentService.AiResolutionOutcome outcome =
+                    aiResolutionAgentService.resolveTicket(ticket);
+            result = new AgentResolutionResult(outcome.success(), outcome.resolutionNote(), outcome.agentName());
+        } else {
+            result = resolver.resolve(ticket);
+        }
 
         // If ticket is OPEN or ASSIGNED, step through IN_PROGRESS to satisfy domain state machine rules
         if (ticket.getStatus() == TicketStatus.OPEN || ticket.getStatus() == TicketStatus.ASSIGNED) {
