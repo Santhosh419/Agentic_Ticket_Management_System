@@ -70,6 +70,10 @@
 
           <button type="submit" class="btn btn-primary btn-full">Sign In</button>
 
+          <p style="margin-top: 1rem; text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+            Don't have an account? <a href="#" id="link-to-register" style="color: var(--text-primary); font-weight: 600; text-decoration: underline;">Create one here</a>
+          </p>
+
           <!-- Quick Demo Creds Helper -->
           <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-secondary);">
             <p><strong>Demo Accounts:</strong></p>
@@ -84,20 +88,32 @@
           
           <div class="form-group">
             <label class="form-label" for="reg-name">Full Name</label>
-            <input type="text" id="reg-name" class="form-input" placeholder="Riya Sharma" required minlength="2">
+            <input type="text" id="reg-name" class="form-input" placeholder="Riya Sharma" required minlength="2" maxlength="120">
           </div>
 
           <div class="form-group">
             <label class="form-label" for="reg-email">Email Address</label>
-            <input type="email" id="reg-email" class="form-input" placeholder="riya@example.com" required>
+            <input type="email" id="reg-email" class="form-input" placeholder="riya@example.com" required maxlength="255">
           </div>
 
           <div class="form-group">
             <label class="form-label" for="reg-password">Password</label>
-            <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required minlength="8">
+            <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required minlength="8" maxlength="72" pattern="^(?=.*[A-Za-z])(?=.*\d).+$" title="Must be at least 8 characters and contain at least one letter and one number">
+            <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.35rem; display: block;">
+              Minimum 8 characters, containing at least one letter and one number.
+            </span>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-full">Register Account</button>
+          <div class="form-group">
+            <label class="form-label" for="reg-phone">Phone Number <span style="font-size: 0.75rem; color: var(--text-secondary);">(Optional)</span></label>
+            <input type="tel" id="reg-phone" class="form-input" placeholder="+1 234 567 8900" pattern="^[0-9+\- ]*$" title="Phone may contain digits, spaces, + and - only">
+          </div>
+
+          <button type="submit" id="btn-submit-register" class="btn btn-primary btn-full">Register Account</button>
+
+          <p style="margin-top: 1rem; text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+            Already have an account? <a href="#" id="link-to-login" style="color: var(--text-primary); font-weight: 600; text-decoration: underline;">Sign in instead</a>
+          </p>
         </form>
       </div>
     </div>

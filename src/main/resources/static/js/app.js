@@ -76,6 +76,9 @@
     regName: document.getElementById('reg-name'),
     regEmail: document.getElementById('reg-email'),
     regPassword: document.getElementById('reg-password'),
+    regPhone: document.getElementById('reg-phone'),
+    linkToRegister: document.getElementById('link-to-register'),
+    linkToLogin: document.getElementById('link-to-login'),
 
     // Customer Elements
     btnOpenCreateModal: document.getElementById('btn-open-create-modal'),
@@ -142,21 +145,26 @@
     try {
       const res = await fetch(endpoint, config);
       
-      if (res.status === 401) {
-        // Token invalid / expired
-        handleLogout();
-        showToast('Session expired. Please sign in again.', 'error');
-        throw new Error('Unauthorized');
-      }
-
       const contentType = res.headers.get('content-type');
       let data = null;
       if (contentType && contentType.includes('application/json')) {
         data = await res.json();
       }
 
+      if (res.status === 401 && !endpoint.startsWith('/api/auth/')) {
+        // Token invalid / expired for authenticated endpoint
+        handleLogout();
+        showToast('Session expired. Please sign in again.', 'error');
+        throw new Error('Unauthorized');
+      }
+
       if (!res.ok) {
-        const errorMsg = data?.message || data?.error || `Request failed with status ${res.status}`;
+        let errorMsg = '';
+        if (data?.fieldErrors && typeof data.fieldErrors === 'object' && Object.keys(data.fieldErrors).length > 0) {
+          errorMsg = Object.values(data.fieldErrors).join('. ');
+        } else {
+          errorMsg = data?.message || data?.error || `Request failed with status ${res.status}`;
+        }
         throw new Error(errorMsg);
       }
 
@@ -211,46 +219,79 @@
   });
 
   // --- Auth Handlers ---
-  DOM.tabLogin.addEventListener('click', () => {
+  function switchToLogin() {
     DOM.tabLogin.classList.add('active');
     DOM.tabRegister.classList.remove('active');
     DOM.formLogin.style.display = 'block';
     DOM.formRegister.style.display = 'none';
-  });
+  }
 
-  DOM.tabRegister.addEventListener('click', () => {
+  function switchToRegister() {
     DOM.tabRegister.classList.add('active');
     DOM.tabLogin.classList.remove('active');
     DOM.formRegister.style.display = 'block';
     DOM.formLogin.style.display = 'none';
-  });
+  }
+
+  DOM.tabLogin.addEventListener('click', switchToLogin);
+  DOM.tabRegister.addEventListener('click', switchToRegister);
+  if (DOM.linkToRegister) DOM.linkToRegister.addEventListener('click', (e) => { e.preventDefault(); switchToRegister(); });
+  if (DOM.linkToLogin) DOM.linkToLogin.addEventListener('click', (e) => { e.preventDefault(); switchToLogin(); });
 
   DOM.formLogin.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = DOM.formLogin.querySelector('button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.textContent : 'Sign In';
     try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing in...';
+      }
       const data = await apiCall('/api/auth/login', 'POST', {
         email: DOM.loginEmail.value.trim(),
         password: DOM.loginPassword.value
       });
+      DOM.formLogin.reset();
       setSession(data.token, data.user);
       showToast(`Welcome back, ${data.user.fullName}!`, 'success');
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
     }
   });
 
   DOM.formRegister.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = DOM.formRegister.querySelector('button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.textContent : 'Register Account';
     try {
-      const data = await apiCall('/api/auth/register', 'POST', {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating account...';
+      }
+      const payload = {
         fullName: DOM.regName.value.trim(),
         email: DOM.regEmail.value.trim(),
         password: DOM.regPassword.value
-      });
+      };
+      if (DOM.regPhone && DOM.regPhone.value.trim()) {
+        payload.phone = DOM.regPhone.value.trim();
+      }
+      const data = await apiCall('/api/auth/register', 'POST', payload);
+      DOM.formRegister.reset();
       setSession(data.token, data.user);
       showToast('Registration successful! Welcome to IntelliDesk.', 'success');
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
     }
   });
 
@@ -269,6 +310,7 @@
     state.user = null;
     localStorage.removeItem('intellidesk_token');
     localStorage.removeItem('intellidesk_user');
+    switchToLogin();
     renderApp();
   }
 
